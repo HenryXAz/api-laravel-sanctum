@@ -29,7 +29,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
   Route::resource('products', ProductController::class)
     ->except(['create', 'edit']);
-  Route::get('products/status/en-oferta', [ProductController::class, 'itsOnSale']);
 
   Route::resource('categories', CategoryController::class)
     ->except(['create', 'edit']);

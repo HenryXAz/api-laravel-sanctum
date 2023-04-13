@@ -20,6 +20,5 @@ class Product extends Model
       'detail',
       'category_id',
       'price',
-      'itsOnSale',
     ];
 }

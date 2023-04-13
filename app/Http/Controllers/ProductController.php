@@ -20,7 +20,6 @@ class ProductController extends Controller
       'detail' => $product->detail,
       'price'  => $product->price,
       'category' => $product->category->detail,
-      'itsOnSale' => $product->itsOnSale,
     ];
 
     },$allsProducts->all());
@@ -50,7 +49,6 @@ class ProductController extends Controller
         'detail' => $product->detail,
         'price' => $product->price,
         'category' => $product->category->detail,
-        'itsOnSale' => $product->itsOnSale,
       ],
       Response::HTTP_OK,
     );
@@ -77,7 +75,7 @@ class ProductController extends Controller
     $product->detail = $request->detail;
     $product->category_id = $request->category_id;
     $product->price = $request->price;
-    $product->itsOnSale = $request->has('itsOnSale') ?? $request->itsOnSale;
+
     $product->save();
 
 
@@ -112,7 +110,6 @@ class ProductController extends Controller
     $product->detail = $request->has('detail') ? $request->detail : $product->detail;
     $product->category_id = $request->has('category_id') ?  $request->category_id : $product->category_id;
     $product->price = $request->has('price') ? $request->price : $product->price;
-    $product->itsOnSale = $request->has('itsOnSale') ? $request->itsOnSale : $product->itsOnSale;
 
     $product->save();
 
@@ -146,27 +143,6 @@ class ProductController extends Controller
         'status' => 'not found',
       ],
       Response::HTTP_NOT_FOUND,
-    );
-  }
-
-  public function itsOnSale()
-  {
-    $allProducts = Product::where('itsOnSale', '=', true)->get();
-
-    $products = array_map(function($product){
-      
-      return [
-        'id' => $product->id,
-        'detail' => $product->detail,
-        'price' => $product->price,
-        'category' => $product->category->detail,
-        'itsOnSale' => $product->itsOnSale,
-      ];
-    },$allProducts->all());
-
-    return response()->json(
-      $products,
-      Response::HTTP_OK,
     );
   }
 

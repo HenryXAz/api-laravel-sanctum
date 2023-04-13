@@ -17,7 +17,6 @@ return new class extends Migration
             $table->id();
             $table->string('detail');
             $table->float('price');
-            $table->boolean('itsOnSale')->nullable()->default(false);
             $table->timestamps();
             $table->foreignId('category_id')
               ->nullable();
