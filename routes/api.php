@@ -16,20 +16,3 @@ use App\Http\Controllers\ProductController;
 |
 */
 
-Route::post('signUp', [AuthController::class, 'signUp'])->name('signUp');
-Route::post('login', [AuthController::class, 'login'])->name('login');
-
-
-
-
-
-Route::group(['middleware' => ['auth:sanctum']], function () {
-  Route::get('profile', [AuthController::class, 'profile'])->name('profile');
-  Route::post('logout', [AuthController::class, 'logout'])->name('logout');
-
-  Route::resource('products', ProductController::class)
-    ->except(['create', 'edit']);
-
-  Route::resource('categories', CategoryController::class)
-    ->except(['create', 'edit']);
-});

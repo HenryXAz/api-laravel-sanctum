@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Product;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
@@ -10,51 +12,29 @@ use Illuminate\Support\Facades\Validator;
 class ProductController extends Controller
 {
 
-  public function index()
+  public function index(): JsonResponse
   {
-    $allsProducts = Product::all();
+    $allsProducts = Product::with('category')->get();
 
-    $products = array_map(function($product){    
-    return [
-      'id' => $product->id,
-      'detail' => $product->detail,
-      'price'  => $product->price,
-      'category' => $product->category->detail,
-    ];
-
-    },$allsProducts->all());
-
-    return response()->json(
-      $products,
+    return new JsonResponse(
+      $allsProducts,
       Response::HTTP_OK,
     );
   }
 
-  public function show($id)
+  public function show(Product $product): JsonResponse
   {
-    $product = Product::find($id);
+    $product = $product->load('category');
 
-
-    if(!$product) {
-      return response()->json(
-        [
-          'status' => 'not found',
-        ],
-        Response::HTTP_NOT_FOUND,
-      );
-    }
-
-    return response()->json(
-      [
-        'detail' => $product->detail,
-        'price' => $product->price,
-        'category' => $product->category->detail,
-      ],
-      Response::HTTP_OK,
+    return new JsonResponse([
+      'status' => 'success',
+      'product' => $product
+    ],
+    Response::HTTP_OK, 
     );
   }
 
-  public function store(Request $request) 
+  public function store(Request $request): JsonResponse 
   {
     $validator = Validator::make($request->all(), 
       [
@@ -65,9 +45,19 @@ class ProductController extends Controller
     );
 
     if($validator->fails()) {
-      return response()->json(
+      return new JsonResponse(
         $validator->errors(),
         Response::HTTP_BAD_REQUEST,
+      );
+    }
+
+    $category = Category::find($request->category_id);
+    if(!$category) {
+      return new JsonResponse([
+        'message' => '400 bad request',
+        'error' => 'category not found',
+      ],
+      Response::HTTP_BAD_REQUEST, 
       );
     }
 
@@ -75,74 +65,50 @@ class ProductController extends Controller
     $product->detail = $request->detail;
     $product->category_id = $request->category_id;
     $product->price = $request->price;
-
     $product->save();
 
-
-    return response()->json(
+    return new JsonResponse(
       [
         'status' => 'created',
+        'product' => $product,
       ],
       Response::HTTP_CREATED,
     );
   }
 
-  public function update(Request $request, $id) 
+  public function update(Product $product, Request $request): JsonResponse 
   {
-    $product = Product::find($id);
+    if($request->has('category_id')) {
+      $category = Category::find($request->category_id);
 
-    $validator = Validator::make($request->all(), 
-      [
-        'detail' => 'regex:/^\w+(\s\w+)*$/',
-        'category' => 'regex:/^\d+$/',
-        'price' => 'regex:/^\d+(.(\d+))*$/',
-        'itsOnSale' => 'boolean',  
-      ]
-    );    
+      if(!$category) {
+        return new JsonResponse([
+          'message' => '400 bad request',
+          'error' => 'category not found',
+        ],
+        Response::HTTP_BAD_REQUEST
+        );
+      }
+    }    
 
-    if($validator->fails()) {
-      return response()->json(
-        $validator->errors(),
-        Response::HTTP_BAD_REQUEST,
-      );
-    }
+    $product->update($request->all());
 
-    $product->detail = $request->has('detail') ? $request->detail : $product->detail;
-    $product->category_id = $request->has('category_id') ?  $request->category_id : $product->category_id;
-    $product->price = $request->has('price') ? $request->price : $product->price;
-
-    $product->save();
-
-
-    return response()->json(
+    return new JsonResponse(
       [
         'status' => 'updated successfully',
-        $product,
+        'product' => $product,
       ],
       Response::HTTP_OK,  
     );
   }
 
-  public function destroy($id)
+  public function destroy(Product $product): JsonResponse
   {
-    $product = Product::find($id);
-
-    if($product) {
-      $product->delete();
-
-      return response()->json(
-        [
-          'status' => 'deleted successfully',
-        ],
-        Response::HTTP_OK,
-      );
-    }
-
-    return response()->json(
-      [
-        'status' => 'not found',
-      ],
-      Response::HTTP_NOT_FOUND,
+    return new JsonResponse([
+      'status' => 'success',
+      'product' => $product,
+    ],
+    Response::HTTP_OK, 
     );
   }
 

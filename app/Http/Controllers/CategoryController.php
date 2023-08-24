@@ -1,54 +1,43 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
 {
-  
-  public function index()
+  public function index(): JsonResponse
   {
     $categories = Category::all();
 
-    return response()->json(
+    return new JsonResponse(
       $categories,
       Response::HTTP_OK,
     );
   }
 
-  public function show($id) 
+  public function show(Category $category): JsonResponse
   {
-    $category = Category::find($id);
-
-    if(!$category) {
-      return response()->json(
-        [
-          'status' => 'not found',
-        ],
-        Response::HTTP_NOT_FOUND,
-      );
-    }
-
-    return response()->json(
+    return new JsonResponse(
       $category,
       Response::HTTP_OK,
     );
   }
 
-  public function store(Request $request) 
+  public function store(Request $request): JsonResponse
   {
-    $validator = Validator::make($request->all(), 
+    $validator = Validator::make(
+      $request->all(),
       [
         'detail' => 'required',
       ]
     );
 
-    if($validator->fails()) {
-      return response()->json(
+    if ($validator->fails()) {
+      return new JsonResponse(
         $validator->errors(),
         Response::HTTP_NOT_FOUND,
       );
@@ -58,7 +47,7 @@ class CategoryController extends Controller
     $category->detail = $request->detail;
     $category->save();
 
-    return response()->json(
+    return new JsonResponse(
       [
         'status' => 'created',
         $category,
@@ -67,62 +56,45 @@ class CategoryController extends Controller
     );
   }
 
-  public function update(Request $request, $id)
+  public function update(Category $category, Request $request): JsonResponse
   {
-    $validator = Validator::make($request->all(), 
+    $validator = Validator::make(
+      $request->all(),
       [
-        'detail' => 'regex:/^\w+(\s\w+)*$/',
+        'detail' => 'min:1|regex:/^\w+(\s\w+)*$/',
       ]
     );
 
-    if($validator->fails()) {
-      return response()->json(
+    if ($validator->fails()) {
+      return new JsonResponse(
         [
           'status' => 'not found',
+          'errros' => $validator->errors(),
         ],
         Response::HTTP_NOT_FOUND,
       );
     }
 
-    $category = Category::find($id);
+    $category->update($request->all());
 
-    if(!$category) {
-      return response()->json(
-        [
-          'status' => 'not found',
-        ],
-        Response::HTTP_NOT_FOUND,
-      );
-    }
-
-    $category->detail = $request->has('detail') ? $request->detail : $category->detail;
-    $category->save();
-
-    return response()->json(
+    return new JsonResponse(
       [
-        'status' => 'updated successfully',
-        $category,
+        'status' => 'udpated',
+        'category' => $category,
       ],
       Response::HTTP_OK,
-    );
+    ); 
   }
 
-  public function destroy($id)
-  { 
-    $category = Category::find($id);
+  public function destroy(Category $category): JsonResponse
+  {
+    $category->delete();
 
-    if(!$category) {
-      return response()->json(
-        [
-          'status' => 'not found',
-        ],
-        Response::HTTP_NOT_FOUND,
-      );
-    }
-
-    return response()->json(
+    return new JsonResponse(
       [
-        'status' => 'deleted successfully',
+        "status" => 'success',
+        "message" => "category was remove successfully",
+        "category" => $category,
       ],
       Response::HTTP_OK,
     );
