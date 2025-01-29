@@ -11,6 +11,3 @@ php artisan route:cache
 
 echo "Running migrations..."
 php artisan migrate --force
-
-echo "Generate api docs..."
-php artisan scribe:generate
